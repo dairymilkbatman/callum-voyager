@@ -164,13 +164,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         lshift_pressed = record->event.pressed;
     }
 
-  //   switch (keycode) {
-  //       case RGB_SLD:
-  //           if (record->event.pressed) {
-  //               rgblight_mode(1);
-  //     }
-  //     return false;
-  // }
     return true;
 }
 
@@ -182,94 +175,50 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 //     return state;
 // }
 
+// layer_state_t layer_state_set_user(layer_state_t state) {
+//     state = update_tri_layer_state(state, SYM, NAV, FUN);
+
+//     // Check if any form of shift is active (physical or oneshot)
+//     bool shift_active = lshift_pressed ||
+//                        (os_shft_state == os_down_unused) ||
+//                        (os_shft_state == os_down_used) ||
+//                        (os_shft_state == os_up_queued);
+
+
+//     if (!(layer_state & (1UL << NUM))) {
+//         state |= (1UL << FUN);
+//     }
+//     // Custom logic: SYM + thumb Shift = NUM
+//     if (layer_state_cmp(state, SYM) && shift_active) {
+//         state |= (1UL << NUM);  // Activate layer
+//     } else {
+//         state &= ~(1UL << NUM); // Deactivate layer
+//     }
+
+//     return state;
+// }
+
+// Better way?
 layer_state_t layer_state_set_user(layer_state_t state) {
+    // Update tri-layer state (SYM, NAV, FUN)
     state = update_tri_layer_state(state, SYM, NAV, FUN);
 
-    // Check if any form of shift is active (physical or oneshot)
-    bool shift_active = lshift_pressed ||
-                       (os_shft_state == os_down_unused) ||
-                       (os_shft_state == os_down_used) ||
-                       (os_shft_state == os_up_queued);
+    // Check if SYM is active
+    if (layer_state_cmp(state, SYM)) {
+        // If lshift is pressed, and current state is SYM, activate NUM by setting bitmask.
+        if (lshift_pressed) {
+            state |= (1UL << NUM);
+        }
 
-
-    if (!(layer_state & (1UL << NUM))) {
-        state |= (1UL << FUN);
-    }
-    // Custom logic: SYM + thumb Shift = NUM
-    if (layer_state_cmp(state, SYM) && shift_active) {
-        state |= (1UL << NUM);  // Activate layer
+        // If NAV is active, activate FUN (SYM + NAV)
+        if (layer_state_cmp(state, NAV)) {
+            state |= (1UL << FUN);
+        }
     } else {
-        state &= ~(1UL << NUM); // Deactivate layer
+        // If SYM is not active, deactivate NUM and FUN
+        state &= ~(1UL << NUM);
+        state &= ~(1UL << FUN);
     }
 
     return state;
 }
-
-
-// extern rgb_config_t rgb_matrix_config;
-
-// RGB hsv_to_rgb_with_value(HSV hsv) {
-//   RGB rgb = hsv_to_rgb( hsv );
-//   float f = (float)rgb_matrix_config.hsv.v / UINT8_MAX;
-//   return (RGB){ f * rgb.r, f * rgb.g, f * rgb.b };
-// }
-
-// void keyboard_post_init_user(void) {
-//   rgb_matrix_enable();
-// }
-
-// const uint8_t PROGMEM ledmap[][RGB_MATRIX_LED_COUNT][3] = {
-//     [0] = { {0,255,128}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255}, {0,255,255} },
-
-//     [1] = { {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255}, {152,255,255} },
-
-//     [2] = { {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255}, {131,255,255} },
-
-//     [3] = { {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245}, {0,245,245} },
-
-//     [4] = { {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255} },
-
-// };
-
-// void set_layer_color(int layer) {
-//   for (int i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
-//     HSV hsv = {
-//       .h = pgm_read_byte(&ledmap[layer][i][0]),
-//       .s = pgm_read_byte(&ledmap[layer][i][1]),
-//       .v = pgm_read_byte(&ledmap[layer][i][2]),
-//     };
-//     if (!hsv.h && !hsv.s && !hsv.v) {
-//         rgb_matrix_set_color( i, 0, 0, 0 );
-//     } else {
-//         RGB rgb = hsv_to_rgb_with_value(hsv);
-//         rgb_matrix_set_color(i, rgb.r, rgb.g, rgb.b);
-//     }
-//   }
-// }
-
-// bool rgb_matrix_indicators_user(void) {
-//     if (keyboard_config.disable_layer_led) { return false; }
-//   switch (biton32(layer_state)) {
-//     case DEF:
-//       set_layer_color(0);
-//       break;
-//     case SYM:
-//       set_layer_color(1);
-//       break;
-//     case NAV:
-//       set_layer_color(2);
-//       break;
-//     case NUM:
-//       set_layer_color(3);
-//       break;
-//     case FUN:
-//       set_layer_color(4);
-//       break;
-//    default:
-//       if (rgb_matrix_get_flags() == LED_FLAG_NONE) {
-//         rgb_matrix_set_color_all(0, 0, 0);
-//       }
-//   }
-
-//   return true;
-// }
