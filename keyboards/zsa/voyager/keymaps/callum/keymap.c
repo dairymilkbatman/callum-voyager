@@ -160,12 +160,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         keycode, record
     ); // Turns on the command modifier when the key is pressed and turns it off when the key is released.
 
-    if (keycode == KC_LSFT) {
-        lshift_pressed = record->event.pressed;
-    }
+    // redundant with os_shft_state?
+    // if (keycode == KC_LSFT) {
+    //     lshift_pressed = record->event.pressed;
+    // }
 
     return true;
 }
+
 
 // Sets the layer state based on the current state and the key pressed.
 // layer_state_t layer_state_set_user(layer_state_t state) {
@@ -175,6 +177,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 //     return state;
 // }
 
+// this sucks
 // layer_state_t layer_state_set_user(layer_state_t state) {
 //     state = update_tri_layer_state(state, SYM, NAV, FUN);
 
@@ -199,26 +202,41 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 // }
 
 // Better way?
+// layer_state_t layer_state_set_user(layer_state_t state) {
+//     // Update tri-layer state (SYM, NAV, FUN)
+//     state = update_tri_layer_state(state, SYM, NAV, FUN);
+
+//     // Check if SYM is active
+//     if (layer_state_cmp(state, SYM)) {
+//         // If lshift is pressed, and current state is SYM, activate NUM by setting bitmask.
+//         if (os_shft_state == os_down_unused) ||
+//            (os_shft_state == os_down_used){
+//             state |= (1UL << NUM);
+//         }
+
+//         // If NAV is active, activate FUN (SYM + NAV)
+//         if (layer_state_cmp(state, NAV)) {
+//             state |= (1UL << FUN);
+//         }
+//     } else {
+//         // If SYM is not active, deactivate NUM and FUN
+//         state &= ~(1UL << NUM);
+//         state &= ~(1UL << FUN);
+//     }
+
+//     return state;
+// }
+
+// final form?
 layer_state_t layer_state_set_user(layer_state_t state) {
-    // Update tri-layer state (SYM, NAV, FUN)
     state = update_tri_layer_state(state, SYM, NAV, FUN);
 
-    // Check if SYM is active
     if (layer_state_cmp(state, SYM)) {
-        // If lshift is pressed, and current state is SYM, activate NUM by setting bitmask.
-        if (lshift_pressed) {
+        if (os_shft_state == os_down_unused || os_shft_state == os_down_used) {
             state |= (1UL << NUM);
         }
-
-        // If NAV is active, activate FUN (SYM + NAV)
-        if (layer_state_cmp(state, NAV)) {
-            state |= (1UL << FUN);
-        }
     } else {
-        // If SYM is not active, deactivate NUM and FUN
         state &= ~(1UL << NUM);
-        state &= ~(1UL << FUN);
     }
-
     return state;
 }
