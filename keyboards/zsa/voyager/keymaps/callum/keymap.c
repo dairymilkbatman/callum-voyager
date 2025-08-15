@@ -1,5 +1,5 @@
 #include QMK_KEYBOARD_H
-#pragma once
+// #pragma once // do i need this?
 
 #include "oneshot.h"
 #include "swapper.h"
@@ -17,11 +17,6 @@
 
 #define SPACE_L A(G(KC_LEFT))
 #define SPACE_R A(G(KC_RGHT))
-
-// #define LA_NUM MO(NUM) do i need these two?
-// #define LA_FUN MO(FUN) I don't think I do, because these are for user presses. Only need to define keys
-// that will be used somewhere.
-
 
 enum layers {
     DEF,
@@ -90,7 +85,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 
 // Both NAV and SYM -on the base layer- can cancel oneshot modifiers.
-// This defines keys that are able to cancel a queued OSM.
+// This defines keys that are able to cancel a queued OSM. Returns true if the key is a cancel key, false otherwise.
 bool is_oneshot_cancel_key(uint16_t keycode) {
     switch (keycode) {
     case LA_SYM:
@@ -102,12 +97,12 @@ bool is_oneshot_cancel_key(uint16_t keycode) {
 }
 
 // Determines if a key should be ignored by oneshot modifiers.
-// Why is the NUM layer missing from this function? because NUM is a layer activated by tri-layer func
+// Why is the NUM layer missing from this function? because NUM is a layer activated by tri-layer func and is not a key.
 bool is_oneshot_ignored_key(uint16_t keycode) {
     switch (keycode) {
     case LA_SYM:
     case LA_NAV:
-    case KC_LSFT:   // Keep this so shift doesn't cancel oneshots
+    case KC_LSFT:   // Left thumb shift should be ignored by oneshot modifiers.
     case OS_SHFT:
     case OS_CTRL:
     case OS_ALT:
@@ -120,9 +115,9 @@ bool is_oneshot_ignored_key(uint16_t keycode) {
 
 bool sw_win_active = false;
 // bool sw_lang_active = false;
-bool lshift_pressed = false;  // Add this line
+// bool lshift_pressed = false;
 
-// Initialize oneshot states
+// Initializes initial oneshot states.
 oneshot_state os_shft_state = os_up_unqueued;
 oneshot_state os_ctrl_state = os_up_unqueued;
 oneshot_state os_alt_state = os_up_unqueued;
@@ -160,7 +155,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         keycode, record
     ); // Turns on the command modifier when the key is pressed and turns it off when the key is released.
 
-    // redundant with os_shft_state?
+    // redundant with os_shft_state? what if this is null? why should it not be initialized?
     // if (keycode == KC_LSFT) {
     //     lshift_pressed = record->event.pressed;
     // }

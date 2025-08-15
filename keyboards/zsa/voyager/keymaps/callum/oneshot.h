@@ -14,14 +14,15 @@ typedef enum {
 // used while it is held it will be unregistered on keyup as normal, otherwise
 // it will be queued and only released after the next non-mod keyup.
 void update_oneshot(
-    oneshot_state *state,
-    uint16_t mod,
-    uint16_t trigger,
-    uint16_t keycode,
-    keyrecord_t *record
+    oneshot_state *state, // A pointer to the oneshot_state variable that holds the current state of the oneshot key
+    uint16_t mod, // The keycode of the modifier key., eg KC_LCTL
+    uint16_t trigger, // The keycode of the trigger key, eg., KC_TAB
+    uint16_t keycode, // The keycode of the currently pressed key.
+    keyrecord_t *record // A pointer to the keyrecord_t structure for the current key event.
 );
 
 // To be implemented by the consumer. Defines keys to cancel oneshot mods.
+// Takes a keycode as an argument and returns true if the key should cancel the oneshot mod.
 bool is_oneshot_cancel_key(uint16_t keycode);
 
 // To be implemented by the consumer. Defines keys to ignore when determining
