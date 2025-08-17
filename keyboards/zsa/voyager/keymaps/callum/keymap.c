@@ -20,11 +20,11 @@
 
 enum layers {
     DEF,
-    SYM,
     NAV,
+    SYM,
+    FUN,
     NUM,
 
-    FUN, //add fun layer
 };
 
 enum keycodes {
@@ -73,9 +73,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 
     [NUM] = LAYOUT_voyager(
-        _______, KC_KP_EQUAL,    KC_7,      KC_8,       KC_9,     KC_KP_PLUS,             XXXXXXX,   _______, _______, _______, _______, _______,
-        _______, KC_PAST,        KC_4,      KC_5,       KC_6,     KC_KP_MINUS,            KC_RALT,  KC_LGUI, KC_LALT, KC_LCTL, KC_LSFT, _______,
-        _______, KC_0,           KC_1,      KC_2,       KC_3,     KC_KP_SLASH,            _______,  KC_BSPC, KC_TAB,  _______, KC_APP,  _______,
+        _______, KC_KP_EQUAL,    KC_P7,      KC_P8,       KC_P9,     KC_KP_PLUS,          XXXXXXX,  _______, _______, _______, _______, _______,
+        _______, KC_PAST,        KC_P4,      KC_P5,       KC_P6,     KC_KP_MINUS,         KC_RALT,  KC_LGUI, KC_LALT, KC_LCTL, KC_LSFT, _______,
+        _______, KC_P0,          KC_P1,      KC_P2,       KC_P3,     KC_KP_SLASH,         _______,  KC_BSPC, KC_TAB,  _______, KC_APP,  _______,
         _______, _______,        _______,   _______,    KC_DOT,   _______,                _______,  _______, _______, _______, _______, _______,
                                                         _______,  _______,                KC_ENTER, _______
 
@@ -114,6 +114,7 @@ bool is_oneshot_ignored_key(uint16_t keycode) {
 }
 
 bool sw_win_active = false;
+bool num_activated_by_shift = false;
 // bool sw_lang_active = false;
 // bool lshift_pressed = false;
 
@@ -125,14 +126,12 @@ oneshot_state os_cmd_state = os_up_unqueued;
 
 // The below function processes user key events and updates the state of the oneshot modifiers.
 // It checks if the key is ignored by oneshot modifiers and updates the state of the oneshot modifiers accordingly.
-// I think this function defines SW_WIN, OS_SHIFT, OS_CTRL, OS_ALT, OS_CMD
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     update_swapper(
         &sw_win_active, KC_LGUI, KC_TAB, SW_WIN,
         keycode, record
     ); // Turns on the window swap modifier when the key is pressed and turns it off when the key is released.
 
-    // I do not need this function, not using language swap.
     // update_swapper(
     //     &sw_lang_active, KC_LCTL, KC_SPC, SW_LANG,
     //     keycode, record
@@ -155,83 +154,32 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         keycode, record
     ); // Turns on the command modifier when the key is pressed and turns it off when the key is released.
 
-    // redundant with os_shft_state? what if this is null? why should it not be initialized?
-    // if (keycode == KC_LSFT) {
-    //     lshift_pressed = record->event.pressed;
-    // }
+    if (keycode == KC_LSFT) {
+        // lshift_pressed = record->event.pressed;
+        layer_state_set(layer_state);
+    }
 
     return true;
 }
 
-
-// Sets the layer state based on the current state and the key pressed.
-// layer_state_t layer_state_set_user(layer_state_t state) {
-//     return update_tri_layer_state(state, SYM, NAV, NUM);
-//     state = update_tri_layer_state(state, SYM, NAV, NUM);
-//     state = update_tri_layer_state(state, KC_LSFT, SYM, FUN); // new layer, this method does not accept keycodes.
-//     return state;
-// }
-
-// this sucks
-// layer_state_t layer_state_set_user(layer_state_t state) {
-//     state = update_tri_layer_state(state, SYM, NAV, FUN);
-
-//     // Check if any form of shift is active (physical or oneshot)
-//     bool shift_active = lshift_pressed ||
-//                        (os_shft_state == os_down_unused) ||
-//                        (os_shft_state == os_down_used) ||
-//                        (os_shft_state == os_up_queued);
-
-
-//     if (!(layer_state & (1UL << NUM))) {
-//         state |= (1UL << FUN);
-//     }
-//     // Custom logic: SYM + thumb Shift = NUM
-//     if (layer_state_cmp(state, SYM) && shift_active) {
-//         state |= (1UL << NUM);  // Activate layer
-//     } else {
-//         state &= ~(1UL << NUM); // Deactivate layer
-//     }
-
-//     return state;
-// }
-
-// Better way?
-// layer_state_t layer_state_set_user(layer_state_t state) {
-//     // Update tri-layer state (SYM, NAV, FUN)
-//     state = update_tri_layer_state(state, SYM, NAV, FUN);
-
-//     // Check if SYM is active
-//     if (layer_state_cmp(state, SYM)) {
-//         // If lshift is pressed, and current state is SYM, activate NUM by setting bitmask.
-//         if (os_shft_state == os_down_unused) ||
-//            (os_shft_state == os_down_used){
-//             state |= (1UL << NUM);
-//         }
-
-//         // If NAV is active, activate FUN (SYM + NAV)
-//         if (layer_state_cmp(state, NAV)) {
-//             state |= (1UL << FUN);
-//         }
-//     } else {
-//         // If SYM is not active, deactivate NUM and FUN
-//         state &= ~(1UL << NUM);
-//         state &= ~(1UL << FUN);
-//     }
-
-//     return state;
-// }
-
-// final form?
 layer_state_t layer_state_set_user(layer_state_t state) {
     state = update_tri_layer_state(state, SYM, NAV, FUN);
 
     if (layer_state_cmp(state, SYM)) {
-        if (os_shft_state == os_down_unused || os_shft_state == os_down_used) {
+        // if (os_shft_state == os_down_unused || os_shft_state == os_down_used) {
+        if ((get_mods() & MOD_MASK_SHIFT) && !layer_state_cmp(layer_state, NUM)) {
+            // SYM + shift detected, activate NUM
+            state |= (1UL << NUM); // sets bit.
+            num_activated_by_shift = true;
+            unregister_code(KC_LSFT); // clear shift for mods and numbers
+        } else if (num_activated_by_shift) {
+            // keep NUM active while SYM is held
             state |= (1UL << NUM);
         }
     } else {
+        // SYM released, deactivate by clearing bit.
         state &= ~(1UL << NUM);
+        num_activated_by_shift = false;
     }
     return state;
 }
