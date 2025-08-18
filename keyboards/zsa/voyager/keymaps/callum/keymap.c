@@ -82,7 +82,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 };
 
-
+// Basic under-glow for working in the dark
+bool rgb_matrix_indicators_user(void) {
+  for (int i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
+      rgb_matrix_set_color(i, 255, 0, 0);
+  }
+  return false;
+}
 
 // Both NAV and SYM -on the base layer- can cancel oneshot modifiers.
 // This defines keys that are able to cancel a queued OSM. Returns true if the key is a cancel key, false otherwise.
@@ -182,8 +188,4 @@ layer_state_t layer_state_set_user(layer_state_t state) {
         num_activated_by_shift = false;
     }
     return state;
-}
-
-void keyboard_post_init_user(void) {
-    debug_enable = true;
 }
