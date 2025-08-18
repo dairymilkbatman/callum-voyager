@@ -5,4 +5,4 @@
  #define RGB_MATRIX_TIMEOUT 240000
  #undef RGB_MATRIX_MAXIMUM_BRIGHTNESS
  #define RGB_MATRIX_MAXIMUM_BRIGHTNESS 200 // limits maximum brightness of LEDs to 200 out of 255. If not defined maximum brightness is set to 255
- #define RGB_MATRIX_DEFAULT_VAL 10
+ #define RGB_MATRIX_DEFAULT_VAL 15

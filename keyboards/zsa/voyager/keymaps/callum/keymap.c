@@ -85,7 +85,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // Basic under-glow for working in the dark
 bool rgb_matrix_indicators_user(void) {
   for (int i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
-      rgb_matrix_set_color(i, 255, 0, 0);
+      rgb_matrix_set_color(i, 15, 0, 0); // hue=0 (red), sat=255, val=50
+
   }
   return false;
 }
